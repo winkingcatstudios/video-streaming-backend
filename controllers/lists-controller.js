@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
 const getCoordsForAddress = require("../util/location");
-const Place = require("../models/place");
+const Place = require("../models/video");
 const User = require("../models/user");
 
 const getPlacesByUserId = async (req, res, next) => {

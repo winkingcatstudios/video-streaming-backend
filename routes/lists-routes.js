@@ -1,7 +1,7 @@
 const express = require("express");
 const { check } = require("express-validator");
 
-const placesController = require("../controllers/places-controller");
+const placesController = require("../controllers/videos-controller");
 const fileUpload = require("../middleware/file-upload");
 const checkAuth = require("../middleware/check-auth");
 

@@ -5,8 +5,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
-const placesRoutes = require("./routes/places-routes");
+const listsRoutes = require("./routes/lists-routes");
 const usersRoutes = require("./routes/users-routes");
+const videosRoutes = require("./routes/videos-routes");
 const HttpError = require("./models/http-error");
 const getMongoURI = require("./dev-files/dev-files").getMongoURI;
 
@@ -27,8 +28,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/places", placesRoutes);
+app.use("/api/lists", listsRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/videos", videosRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError("Could not find this route", 404);
@@ -54,6 +56,7 @@ mongoose
   .connect(getMongoURI())
   .then(() => {
     app.listen(5000);
+    console.log("Starting backend server")
   })
   .catch((err) => {
     console.log(err);
