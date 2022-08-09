@@ -6,36 +6,36 @@ const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
 const List = require("../models/list");
-const User = require("../models/user");
 
-const getListsByUserId = async (req, res, next) => {
-  const userId = req.params.uid;
+const getLists = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
 
-  let userWithLists;
+  const query = req.query.new;
+  let lists;
   try {
-    userWithLists = await User.findById(userId).populate("lists");
+    lists = query
+      ? await List.find({}).sort({ _id: -1 }).limit(1)
+      : await List.find({});
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
   }
 
-  if (!userWithLists || userWithLists.length === 0) {
-    const error = new HttpError(
-      "Could not find lists for the provided user id",
-      404
-    );
+  if (!lists || lists.length === 0) {
+    const error = new HttpError("Could not find lists", 404);
     return next(error);
   }
 
   res.json({
-    lists: userWithLists.lists.map((list) =>
-    list.toObject({ getters: true })
-    ),
+    lists: lists.map((list) => list.toObject({ getters: true })),
   });
 };
 
 const getListById = async (req, res, next) => {
-  const listId = req.params.lid;
+  const ListId = req.params.lid;
 
   let list;
   try {
@@ -56,7 +56,44 @@ const getListById = async (req, res, next) => {
   res.json({ list: list.toObject({ getters: true }) });
 };
 
+const getRandomList = async (req, res, next) => {
+  const type = req.query.type;
+
+  let list;
+  try {
+    if (type === "series") {
+      list = await List.aggregate([
+        { $match: { isSeries: true } },
+        { $sample: { size: 1 } },
+      ]);
+    } else {
+      list = await List.aggregate([
+        { $match: { isSeries: false } },
+        { $sample: { size: 1 } },
+      ]);
+    }
+  } catch (err) {
+    const error = new HttpError("Something went wrong, database error", 500);
+    return next(error);
+  }
+
+  if (!list) {
+    const error = new HttpError(
+      "Could not find a list for the provided id",
+      404
+    );
+    return next(error);
+  }
+
+  res.json({ list: list });
+};
+
 const postCreateList = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -64,45 +101,17 @@ const postCreateList = async (req, res, next) => {
     );
   }
 
-  const { title, description, address } = req.body;
-
-  let coordinates;
-  try {
-    coordinates = await getCoordsForAddress(address);
-  } catch (error) {
-    return next(error);
-  }
+  const { title, type, genre, content } = req.body;
 
   const createdList = new List({
     title: title,
-    description: description,
-    address: address,
-    image: req.file.path,
-    creator: req.userData.userId,
+    type: type,
+    genre: genre,
+    content: content,
   });
 
-  let user;
   try {
-    user = await User.findById(req.userData.userId);
-  } catch (err) {
-    const error = new HttpError("Creating list failed, please try again", 500);
-    return next(error);
-  }
-
-  if (!user) {
-    const error = new HttpError("Could not find user", 404);
-    return next(error);
-  }
-
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-
-    await createdList.save({ session: sess });
-    user.lists.push(createdList);
-    await user.save({ session: sess });
-
-    await sess.commitTransaction();
+    await createdList.save();
   } catch (err) {
     const error = new HttpError("Creating list failed, please try again", 500);
     return next(error);
@@ -112,6 +121,11 @@ const postCreateList = async (req, res, next) => {
 };
 
 const patchUpdateList = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new HttpError(
@@ -121,7 +135,7 @@ const patchUpdateList = async (req, res, next) => {
     return next(error);
   }
 
-  const { title, description } = req.body;
+  const { title, type, genre } = req.body;
   const listId = req.params.lid;
 
   let list;
@@ -140,13 +154,9 @@ const patchUpdateList = async (req, res, next) => {
     return next(error);
   }
 
-  if (list.creator.toString() !== req.userData.userId) {
-    const error = new HttpError("Not authorized", 401);
-    return next(error);
-  }
-
   list.title = title;
-  list.description = description;
+  list.type = type;
+  list.genre = genre;
 
   try {
     await list.save();
@@ -159,11 +169,16 @@ const patchUpdateList = async (req, res, next) => {
 };
 
 const deleteList = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+  
   const listId = req.params.lid;
 
   let list;
   try {
-    list = await List.findById(listId).populate("creator");
+    list = await List.findById(listId);
   } catch (err) {
     const error = new HttpError("Deleting list failed, please try again", 500);
     return next(error);
@@ -174,36 +189,19 @@ const deleteList = async (req, res, next) => {
     return next(error);
   }
 
-  if (list.creator.id !== req.userData.userId) {
-    const error = new HttpError("Not authorized", 401);
-    return next(error);
-  }
-
-  const imagePath = list.image;
-
   try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-
-    await list.remove({ session: sess });
-    list.creator.lists.pull(list);
-    await list.creator.save({ session: sess });
-
-    await sess.commitTransaction();
+    await list.remove();
   } catch (err) {
     const error = new HttpError("Deleting list failed, please try again", 500);
     return next(error);
   }
 
-  fs.unlink(imagePath, (err) => {
-    console.log(err);
-  });
-
   res.status(200).json({ message: "Deleted list" });
 };
 
-exports.getListsByUserId = getListsByUserId;
+exports.getLists = getLists;
 exports.getListById = getListById;
+exports.getRandomList = getRandomList;
 exports.postCreateList = postCreateList;
 exports.patchUpdateList = patchUpdateList;
 exports.deleteList = deleteList;

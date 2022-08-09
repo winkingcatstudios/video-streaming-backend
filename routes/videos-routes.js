@@ -10,12 +10,14 @@ const router = express.Router();
 
 // public routes
 
-
 router.use(checkAuth);
 // routes below this point require authentication
-// router.get("/user/:uid", videosController.getVideosByUserId);
 
-router.get("/:vid", videosController.getVideoById);
+router.get("/", videosController.getVideos);
+
+router.get("/find/:vid", videosController.getVideoById);
+
+router.get("/random", videosController.getRandomVideo);
 
 router.use(checkAdmin);
 // routes below this point require admin authentication
@@ -39,6 +41,10 @@ router.patch(
   [
     check("title").not().isEmpty(),
     check("description").isLength({ min: 5 }, { max: 500 }),
+    check("year").not().isEmpty(),
+    check("ageLimit").not().isEmpty(),
+    check("genre").not().isEmpty(),
+    check("isSeries").not().isEmpty(),
   ],
   videosController.patchUpdateVideo
 );

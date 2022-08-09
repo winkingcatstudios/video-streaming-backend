@@ -6,33 +6,33 @@ const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
 const Video = require("../models/video");
-const User = require("../models/user");
 
-// const getVideosByUserId = async (req, res, next) => {
-//   const userId = req.params.uid;
+const getVideos = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
 
-//   let userWithVideos;
-//   try {
-//     userWithVideos = await User.findById(userId).populate("videos");
-//   } catch (err) {
-//     const error = new HttpError("Something went wrong, database error", 500);
-//     return next(error);
-//   }
+  const query = req.query.new;
+  let videos;
+  try {
+    videos = query
+      ? await Video.find({}).sort({ _id: -1 }).limit(1)
+      : await Video.find({});
+  } catch (err) {
+    const error = new HttpError("Something went wrong, database error", 500);
+    return next(error);
+  }
 
-//   if (!userWithVideos || userWithVideos.length === 0) {
-//     const error = new HttpError(
-//       "Could not find videos for the provided user id",
-//       404
-//     );
-//     return next(error);
-//   }
+  if (!videos || videos.length === 0) {
+    const error = new HttpError("Could not find videos", 404);
+    return next(error);
+  }
 
-//   res.json({
-//     videos: userWithvideos.videos.map((video) =>
-//     video.toObject({ getters: true })
-//     ),
-//   });
-// };
+  res.json({
+    videos: videos.map((video) => video.toObject({ getters: true })),
+  });
+};
 
 const getVideoById = async (req, res, next) => {
   const videoId = req.params.vid;
@@ -54,6 +54,38 @@ const getVideoById = async (req, res, next) => {
   }
 
   res.json({ video: video.toObject({ getters: true }) });
+};
+
+const getRandomVideo = async (req, res, next) => {
+  const type = req.query.type;
+
+  let video;
+  try {
+    if (type === "series") {
+      video = await Video.aggregate([
+        { $match: { isSeries: true } },
+        { $sample: { size: 1 } },
+      ]);
+    } else {
+      video = await Video.aggregate([
+        { $match: { isSeries: false } },
+        { $sample: { size: 1 } },
+      ]);
+    }
+  } catch (err) {
+    const error = new HttpError("Something went wrong, database error", 500);
+    return next(error);
+  }
+
+  if (!video) {
+    const error = new HttpError(
+      "Could not find a video for the provided id",
+      404
+    );
+    return next(error);
+  }
+
+  res.json({ video: video});
 };
 
 const postCreateVideo = async (req, res, next) => {
@@ -79,7 +111,6 @@ const postCreateVideo = async (req, res, next) => {
     genre: genre,
     isSeries: isSeries,
     // image: req.file.path,
-    // creator: req.userData.userId,
   });
 
   try {
@@ -126,13 +157,12 @@ const patchUpdateVideo = async (req, res, next) => {
     return next(error);
   }
 
-  if (video.creator.toString() !== req.userData.userId) {
-    const error = new HttpError("Not authorized", 401);
-    return next(error);
-  }
-
   video.title = title;
   video.description = description;
+  video.year = year;
+  video.ageLimit = ageLimit;
+  video.genre = genre;
+  video.isSeries = isSeries;
 
   try {
     await video.save();
@@ -145,11 +175,16 @@ const patchUpdateVideo = async (req, res, next) => {
 };
 
 const deleteVideo = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   const videoId = req.params.vid;
 
   let video;
   try {
-    video = await Video.findById(videoId).populate("creator");
+    video = await Video.findById(videoId);
   } catch (err) {
     const error = new HttpError("Deleting video failed, please try again", 500);
     return next(error);
@@ -160,36 +195,25 @@ const deleteVideo = async (req, res, next) => {
     return next(error);
   }
 
-  if (video.creator.id !== req.userData.userId) {
-    const error = new HttpError("Not authorized", 401);
-    return next(error);
-  }
-
-  const imagePath = video.image;
+  // const imagePath = video.image;
 
   try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-
-    await video.remove({ session: sess });
-    video.creator.videos.pull(video);
-    await video.creator.save({ session: sess });
-
-    await sess.commitTransaction();
+    await video.remove();
   } catch (err) {
     const error = new HttpError("Deleting video failed, please try again", 500);
     return next(error);
   }
 
-  fs.unlink(imagePath, (err) => {
-    console.log(err);
-  });
+  // fs.unlink(imagePath, (err) => {
+  //   console.log(err);
+  // });
 
   res.status(200).json({ message: "Deleted video" });
 };
 
-// exports.getVideosByUserId = getVideosByUserId;
+exports.getVideos = getVideos;
 exports.getVideoById = getVideoById;
+exports.getRandomVideo = getRandomVideo;
 exports.postCreateVideo = postCreateVideo;
 exports.patchUpdateVideo = patchUpdateVideo;
 exports.deleteVideo = deleteVideo;
