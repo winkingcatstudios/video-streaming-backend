@@ -8,9 +8,9 @@ const checkAuth = require("../middleware/check-auth");
 const router = express.Router();
 
 // public routes
-router.get("/user/:uid", videosController.getPlacesByUserId);
+router.get("/user/:uid", videosController.getVideosByUserId);
 
-router.get("/:pid", videosController.getPlaceById);
+router.get("/:pid", videosController.getVideoById);
 
 router.use(checkAuth);
 // routes below this point require authentication
@@ -23,7 +23,7 @@ router.post(
     check("description").isLength({ min: 5 }, { max: 500 }),
     check("address").not().isEmpty(),
   ],
-  videosController.postCreatePlace
+  videosController.postCreateVideo
 );
 
 router.patch(
@@ -32,9 +32,9 @@ router.patch(
     check("title").not().isEmpty(),
     check("description").isLength({ min: 5 }, { max: 500 }),
   ],
-  videosController.patchUpdatePlace
+  videosController.patchUpdateVideo
 );
 
-router.delete("/:pid", videosController.deletePlace);
+router.delete("/:pid", videosController.deleteVideo);
 
 module.exports = router;

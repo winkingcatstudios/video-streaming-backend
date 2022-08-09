@@ -142,11 +142,31 @@ const postLogin = async (req, res, next) => {
   });
 };
 
-const putUpdate = async (req, res, next) => {
+const putUpdateUser = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+      return next(error);
+  }
 
+  res.json({
+    message: "Update allowed"
+  });
 }
+
+const deleteUser = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+      return next(error);
+  }
+
+  res.json({
+    message: "Delete allowed"
+  });
+}
+
 
 exports.getUsers = getUsers;
 exports.postSignup = postSignup;
 exports.postLogin = postLogin;
-exports.putUpdate = putUpdate;
+exports.putUpdateUser = putUpdateUser;
+exports.deleteUser = deleteUser;

@@ -5,59 +5,58 @@ const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
-const getCoordsForAddress = require("../util/location");
-const Place = require("../models/video");
+const Video = require("../models/video");
 const User = require("../models/user");
 
-const getPlacesByUserId = async (req, res, next) => {
+const getVideosByUserId = async (req, res, next) => {
   const userId = req.params.uid;
 
-  let userWithPlaces;
+  let userWithVideos;
   try {
-    userWithPlaces = await User.findById(userId).populate("places");
+    userWithVideos = await User.findById(userId).populate("videos");
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
   }
 
-  if (!userWithPlaces || userWithPlaces.length === 0) {
+  if (!userWithVideos || userWithVideos.length === 0) {
     const error = new HttpError(
-      "Could not find places for the provided user id",
+      "Could not find videos for the provided user id",
       404
     );
     return next(error);
   }
 
   res.json({
-    places: userWithPlaces.places.map((place) =>
-      place.toObject({ getters: true })
+    videos: userWithvideos.videos.map((video) =>
+    video.toObject({ getters: true })
     ),
   });
 };
 
-const getPlaceById = async (req, res, next) => {
-  const placeId = req.params.pid;
+const getVideoById = async (req, res, next) => {
+  const videoId = req.params.pid;
 
-  let place;
+  let video;
   try {
-    place = await Place.findById(placeId);
+    video = await Video.findById(videoId);
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
   }
 
-  if (!place) {
+  if (!video) {
     const error = new HttpError(
-      "Could not find a place for the provided id",
+      "Could not find a video for the provided id",
       404
     );
     return next(error);
   }
 
-  res.json({ place: place.toObject({ getters: true }) });
+  res.json({ video: video.toObject({ getters: true }) });
 };
 
-const postCreatePlace = async (req, res, next) => {
+const postCreateVideo = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -74,7 +73,7 @@ const postCreatePlace = async (req, res, next) => {
     return next(error);
   }
 
-  const createdPlace = new Place({
+  const createdVideo = new Video({
     title: title,
     description: description,
     address: address,
@@ -87,7 +86,7 @@ const postCreatePlace = async (req, res, next) => {
   try {
     user = await User.findById(req.userData.userId);
   } catch (err) {
-    const error = new HttpError("Creating place failed, please try again", 500);
+    const error = new HttpError("Creating video failed, please try again", 500);
     return next(error);
   }
 
@@ -100,20 +99,20 @@ const postCreatePlace = async (req, res, next) => {
     const sess = await mongoose.startSession();
     sess.startTransaction();
 
-    await createdPlace.save({ session: sess });
-    user.places.push(createdPlace);
+    await createdVideo.save({ session: sess });
+    user.videos.push(createdVideo);
     await user.save({ session: sess });
 
     await sess.commitTransaction();
   } catch (err) {
-    const error = new HttpError("Creating place failed, please try again", 500);
+    const error = new HttpError("Creating video failed, please try again", 500);
     return next(error);
   }
 
-  res.status(201).json({ place: createdPlace });
+  res.status(201).json({ video: createdVideo });
 };
 
-const patchUpdatePlace = async (req, res, next) => {
+const patchUpdateVideo = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new HttpError(
@@ -124,76 +123,76 @@ const patchUpdatePlace = async (req, res, next) => {
   }
 
   const { title, description } = req.body;
-  const placeId = req.params.pid;
+  const videoId = req.params.pid;
 
-  let place;
+  let video;
   try {
-    place = await Place.findById(placeId);
+    video = await Video.findById(videoId);
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
   }
 
-  if (!place) {
+  if (!video) {
     const error = new HttpError(
-      "Could not find a place for the provided id",
+      "Could not find a video for the provided id",
       404
     );
     return next(error);
   }
 
-  if (place.creator.toString() !== req.userData.userId) {
+  if (video.creator.toString() !== req.userData.userId) {
     const error = new HttpError("Not authorized", 401);
     return next(error);
   }
 
-  place.title = title;
-  place.description = description;
+  video.title = title;
+  video.description = description;
 
   try {
-    await place.save();
+    await video.save();
   } catch (err) {
-    const error = new HttpError("Creating place failed, please try again", 500);
+    const error = new HttpError("Creating video failed, please try again", 500);
     return next(error);
   }
 
-  res.status(200).json({ place: place.toObject({ getters: true }) });
+  res.status(200).json({ video: video.toObject({ getters: true }) });
 };
 
-const deletePlace = async (req, res, next) => {
-  const placeId = req.params.pid;
+const deleteVideo = async (req, res, next) => {
+  const videoId = req.params.pid;
 
-  let place;
+  let video;
   try {
-    place = await Place.findById(placeId).populate("creator");
+    video = await Video.findById(videoId).populate("creator");
   } catch (err) {
-    const error = new HttpError("Deleting place failed, please try again", 500);
+    const error = new HttpError("Deleting video failed, please try again", 500);
     return next(error);
   }
 
-  if (!place) {
-    const error = new HttpError("Cound not find place for this id", 404);
+  if (!video) {
+    const error = new HttpError("Cound not find video for this id", 404);
     return next(error);
   }
 
-  if (place.creator.id !== req.userData.userId) {
+  if (video.creator.id !== req.userData.userId) {
     const error = new HttpError("Not authorized", 401);
     return next(error);
   }
 
-  const imagePath = place.image;
+  const imagePath = video.image;
 
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
 
-    await place.remove({ session: sess });
-    place.creator.places.pull(place);
-    await place.creator.save({ session: sess });
+    await video.remove({ session: sess });
+    video.creator.videos.pull(video);
+    await video.creator.save({ session: sess });
 
     await sess.commitTransaction();
   } catch (err) {
-    const error = new HttpError("Deleting place failed, please try again", 500);
+    const error = new HttpError("Deleting video failed, please try again", 500);
     return next(error);
   }
 
@@ -201,11 +200,11 @@ const deletePlace = async (req, res, next) => {
     console.log(err);
   });
 
-  res.status(200).json({ message: "Deleted place" });
+  res.status(200).json({ message: "Deleted video" });
 };
 
-exports.getPlacesByUserId = getPlacesByUserId;
-exports.getPlaceById = getPlaceById;
-exports.postCreatePlace = postCreatePlace;
-exports.patchUpdatePlace = patchUpdatePlace;
-exports.deletePlace = deletePlace;
+exports.getVideosByUserId = getVideosByUserId;
+exports.getVideoById = getVideoById;
+exports.postCreateVideo = postCreateVideo;
+exports.patchUpdateVideo = patchUpdateVideo;
+exports.deleteVideo = deleteVideo;

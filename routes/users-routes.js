@@ -7,8 +7,6 @@ const checkAdmin = require("../middleware/check-admin");
 
 const router = express.Router();
 
-router.get("/", usersController.getUsers);
-
 router.post(
   "/signup",
   fileUpload.single("image"),
@@ -25,6 +23,11 @@ router.post("/login", usersController.postLogin);
 router.use(checkAdmin);
 // routes below this point require admin authentication
 
-router.put("/:id", usersController.putUpdate);
+router.get("/", usersController.getUsers);
+
+router.put("/:id", usersController.putUpdateUser);
+
+router.delete("/:id", usersController.deleteUser);
+
 
 module.exports = router;
