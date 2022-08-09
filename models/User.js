@@ -19,10 +19,10 @@ const userSchema = new Schema(
       required: true,
       minLength: 12,
     },
-    image: {
-      type: String,
-      required: true,
-    },
+    // image: {
+    //   type: String,
+    //   required: true,
+    // },
     isAdmin: {
       type: Boolean,
       default: false,
