@@ -142,6 +142,11 @@ const postLogin = async (req, res, next) => {
   });
 };
 
+const putUpdate = async (req, res, next) => {
+
+}
+
 exports.getUsers = getUsers;
 exports.postSignup = postSignup;
 exports.postLogin = postLogin;
+exports.putUpdate = putUpdate;

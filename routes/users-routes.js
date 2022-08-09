@@ -3,6 +3,7 @@ const { check } = require("express-validator");
 
 const usersController = require("../controllers/users-controller");
 const fileUpload = require("../middleware/file-upload");
+const checkAdmin = require("../middleware/check-admin");
 
 const router = express.Router();
 
@@ -20,5 +21,10 @@ router.post(
 );
 
 router.post("/login", usersController.postLogin);
+
+router.use(checkAdmin);
+// routes below this point require admin authentication
+
+router.put("/:id", usersController.putUpdate);
 
 module.exports = router;

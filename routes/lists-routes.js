@@ -1,16 +1,16 @@
 const express = require("express");
 const { check } = require("express-validator");
 
-const placesController = require("../controllers/videos-controller");
+const listsController = require("../controllers/lists-controller");
 const fileUpload = require("../middleware/file-upload");
 const checkAuth = require("../middleware/check-auth");
 
 const router = express.Router();
 
 // public routes
-router.get("/user/:uid", placesController.getPlacesByUserId);
+router.get("/user/:uid", listsController.getPlacesByUserId);
 
-router.get("/:pid", placesController.getPlaceById);
+router.get("/:pid", listsController.getPlaceById);
 
 router.use(checkAuth);
 // routes below this point require authentication
@@ -23,7 +23,7 @@ router.post(
     check("description").isLength({ min: 5 }, { max: 500 }),
     check("address").not().isEmpty(),
   ],
-  placesController.postCreatePlace
+  listsController.postCreatePlace
 );
 
 router.patch(
@@ -32,9 +32,9 @@ router.patch(
     check("title").not().isEmpty(),
     check("description").isLength({ min: 5 }, { max: 500 }),
   ],
-  placesController.patchUpdatePlace
+  listsController.patchUpdatePlace
 );
 
-router.delete("/:pid", placesController.deletePlace);
+router.delete("/:pid", listsController.deletePlace);
 
 module.exports = router;
