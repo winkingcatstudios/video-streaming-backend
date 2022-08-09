@@ -7,6 +7,11 @@ const User = require("../models/user");
 const getJWTPrivateKey = require("../dev-files/dev-files").getJWTPrivateKey;
 
 const getUsers = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   const query = req.query.new;
   let users;
   try {
@@ -29,6 +34,11 @@ const getUsers = async (req, res, next) => {
 };
 
 const getUserById = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   let user;
   try {
     user = await User.findById(req.params.id, "-password");
@@ -46,6 +56,11 @@ const getUserById = async (req, res, next) => {
 };
 
 const getUserStats = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   // Could aggregate for past year only, leaving as option for now
   // const today = new Date();
   // const lastYear = today.setFullYear(today.setFullYear() - 1);
@@ -131,7 +146,7 @@ const postSignup = async (req, res, next) => {
     email: email,
     // image: req.file.path,
     password: hashedPassword,
-    // places: [],
+    // lists: [],
   });
 
   try {

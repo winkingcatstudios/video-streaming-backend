@@ -8,9 +8,9 @@ const checkAuth = require("../middleware/check-auth");
 const router = express.Router();
 
 // public routes
-router.get("/user/:uid", listsController.getPlacesByUserId);
+router.get("/user/:uid", listsController.getListsByUserId);
 
-router.get("/:pid", listsController.getPlaceById);
+router.get("/:lid", listsController.getListById);
 
 router.use(checkAuth);
 // routes below this point require authentication
@@ -23,18 +23,18 @@ router.post(
     check("description").isLength({ min: 5 }, { max: 500 }),
     check("address").not().isEmpty(),
   ],
-  listsController.postCreatePlace
+  listsController.postCreateList
 );
 
 router.patch(
-  "/:pid",
+  "/:lid",
   [
     check("title").not().isEmpty(),
     check("description").isLength({ min: 5 }, { max: 500 }),
   ],
-  listsController.patchUpdatePlace
+  listsController.patchUpdateList
 );
 
-router.delete("/:pid", listsController.deletePlace);
+router.delete("/:lid", listsController.deleteList);
 
 module.exports = router;

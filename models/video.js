@@ -10,30 +10,30 @@ const videoSchema = new Schema(
       required: true,
       unique: true,
     },
-    desc: {
+    description: {
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      required: true,
-    },
-    imageTitle: {
-      type: String,
-      required: true,
-    },
-    imageThumb: {
-      type: String,
-      required: true,
-    },
-    trailer: {
-      type: String,
-      required: true,
-    },
-    video: {
-      type: String,
-      required: true,
-    },
+    // image: {
+    //   type: String,
+    //   required: true,
+    // },
+    // imageTitle: {
+    //   type: String,
+    //   required: true,
+    // },
+    // imageThumb: {
+    //   type: String,
+    //   required: true,
+    // },
+    // trailer: {
+    //   type: String,
+    //   required: true,
+    // },
+    // video: {
+    //   type: String,
+    //   required: true,
+    // },
     year: {
       type: String,
       required: true,

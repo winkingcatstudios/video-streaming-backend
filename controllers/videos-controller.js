@@ -8,34 +8,34 @@ const HttpError = require("../models/http-error");
 const Video = require("../models/video");
 const User = require("../models/user");
 
-const getVideosByUserId = async (req, res, next) => {
-  const userId = req.params.uid;
+// const getVideosByUserId = async (req, res, next) => {
+//   const userId = req.params.uid;
 
-  let userWithVideos;
-  try {
-    userWithVideos = await User.findById(userId).populate("videos");
-  } catch (err) {
-    const error = new HttpError("Something went wrong, database error", 500);
-    return next(error);
-  }
+//   let userWithVideos;
+//   try {
+//     userWithVideos = await User.findById(userId).populate("videos");
+//   } catch (err) {
+//     const error = new HttpError("Something went wrong, database error", 500);
+//     return next(error);
+//   }
 
-  if (!userWithVideos || userWithVideos.length === 0) {
-    const error = new HttpError(
-      "Could not find videos for the provided user id",
-      404
-    );
-    return next(error);
-  }
+//   if (!userWithVideos || userWithVideos.length === 0) {
+//     const error = new HttpError(
+//       "Could not find videos for the provided user id",
+//       404
+//     );
+//     return next(error);
+//   }
 
-  res.json({
-    videos: userWithvideos.videos.map((video) =>
-    video.toObject({ getters: true })
-    ),
-  });
-};
+//   res.json({
+//     videos: userWithvideos.videos.map((video) =>
+//     video.toObject({ getters: true })
+//     ),
+//   });
+// };
 
 const getVideoById = async (req, res, next) => {
-  const videoId = req.params.pid;
+  const videoId = req.params.vid;
 
   let video;
   try {
@@ -57,6 +57,11 @@ const getVideoById = async (req, res, next) => {
 };
 
 const postCreateVideo = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -64,46 +69,21 @@ const postCreateVideo = async (req, res, next) => {
     );
   }
 
-  const { title, description, address } = req.body;
-
-  let coordinates;
-  try {
-    coordinates = await getCoordsForAddress(address);
-  } catch (error) {
-    return next(error);
-  }
+  const { title, description, year, ageLimit, genre, isSeries } = req.body;
 
   const createdVideo = new Video({
     title: title,
     description: description,
-    address: address,
-    location: coordinates,
-    image: req.file.path,
-    creator: req.userData.userId,
+    year: year,
+    ageLimit: ageLimit,
+    genre: genre,
+    isSeries: isSeries,
+    // image: req.file.path,
+    // creator: req.userData.userId,
   });
 
-  let user;
   try {
-    user = await User.findById(req.userData.userId);
-  } catch (err) {
-    const error = new HttpError("Creating video failed, please try again", 500);
-    return next(error);
-  }
-
-  if (!user) {
-    const error = new HttpError("Could not find user", 404);
-    return next(error);
-  }
-
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-
-    await createdVideo.save({ session: sess });
-    user.videos.push(createdVideo);
-    await user.save({ session: sess });
-
-    await sess.commitTransaction();
+    await createdVideo.save();
   } catch (err) {
     const error = new HttpError("Creating video failed, please try again", 500);
     return next(error);
@@ -113,6 +93,11 @@ const postCreateVideo = async (req, res, next) => {
 };
 
 const patchUpdateVideo = async (req, res, next) => {
+  if (!req.userData.isAdmin) {
+    const error = new HttpError("Admin required", 403);
+    return next(error);
+  }
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new HttpError(
@@ -122,8 +107,8 @@ const patchUpdateVideo = async (req, res, next) => {
     return next(error);
   }
 
-  const { title, description } = req.body;
-  const videoId = req.params.pid;
+  const { title, description, year, ageLimit, genre, isSeries } = req.body;
+  const videoId = req.params.vid;
 
   let video;
   try {
@@ -160,7 +145,7 @@ const patchUpdateVideo = async (req, res, next) => {
 };
 
 const deleteVideo = async (req, res, next) => {
-  const videoId = req.params.pid;
+  const videoId = req.params.vid;
 
   let video;
   try {
@@ -203,7 +188,7 @@ const deleteVideo = async (req, res, next) => {
   res.status(200).json({ message: "Deleted video" });
 };
 
-exports.getVideosByUserId = getVideosByUserId;
+// exports.getVideosByUserId = getVideosByUserId;
 exports.getVideoById = getVideoById;
 exports.postCreateVideo = postCreateVideo;
 exports.patchUpdateVideo = patchUpdateVideo;
