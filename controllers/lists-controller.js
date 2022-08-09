@@ -13,12 +13,28 @@ const getLists = async (req, res, next) => {
     return next(error);
   }
 
-  const query = req.query.new;
+  const typeQuery = req.query.type;
+  const genreQuery = req.query.genre;
   let lists;
   try {
-    lists = query
-      ? await List.find({}).sort({ _id: -1 }).limit(1)
-      : await List.find({});
+    if (typeQuery) {
+      if (genreQuery) {
+        // type and genre = type page and genre dropdown selected
+        lists = await List.aggregate([
+          { $sample: { size: 10 } },
+          { $match: { type: typeQuery, genre: genreQuery } },
+        ]);
+      } else {
+        // type but no genre = type page but no genre dropdown selected
+        lists = await List.aggregate([
+          { $sample: { size: 10 } },
+          { $match: { type: typeQuery } },
+        ]);
+      }
+    } else {
+      // no type or genre = home page
+      lists = await List.aggregate([{ $sample: { size: 10 } }]);
+    }
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
@@ -29,9 +45,7 @@ const getLists = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({
-    lists: lists.map((list) => list.toObject({ getters: true })),
-  });
+  res.json({ lists: lists });
 };
 
 const getListById = async (req, res, next) => {
@@ -173,7 +187,7 @@ const deleteList = async (req, res, next) => {
     const error = new HttpError("Admin required", 403);
     return next(error);
   }
-  
+
   const listId = req.params.lid;
 
   let list;
