@@ -25,6 +25,10 @@ router.use(checkAdmin);
 
 router.get("/", usersController.getUsers);
 
+router.get("/stats", usersController.getUserStats);
+
+router.get("/find/:id", usersController.getUserById);
+
 router.put("/:id", usersController.putUpdateUser);
 
 router.delete("/:id", usersController.deleteUser);

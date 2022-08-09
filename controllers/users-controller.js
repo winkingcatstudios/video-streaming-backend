@@ -7,9 +7,12 @@ const User = require("../models/user");
 const getJWTPrivateKey = require("../dev-files/dev-files").getJWTPrivateKey;
 
 const getUsers = async (req, res, next) => {
+  const query = req.query.new;
   let users;
   try {
-    users = await User.find({}, "-password");
+    users = query
+      ? await User.find({}, "-password").sort({ _id: -1 }).limit(1)
+      : await User.find({}, "-password");
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
@@ -23,6 +26,71 @@ const getUsers = async (req, res, next) => {
   res.json({
     users: users.map((user) => user.toObject({ getters: true })),
   });
+};
+
+const getUserById = async (req, res, next) => {
+  let user;
+  try {
+    user = await User.findById(req.params.id, "-password");
+  } catch (err) {
+    const error = new HttpError("Something went wrong, database error", 500);
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError("Could not find user", 404);
+    return next(error);
+  }
+
+  res.json({ user: user.toObject({ getters: true }) });
+};
+
+const getUserStats = async (req, res, next) => {
+  // Could aggregate for past year only, leaving as option for now
+  // const today = new Date();
+  // const lastYear = today.setFullYear(today.setFullYear() - 1);
+
+  // const monthsArrary = [
+  //   "January",
+  //   "February",
+  //   "March",
+  //   "April",
+  //   "May",
+  //   "June",
+  //   "July",
+  //   "August",
+  //   "September",
+  //   "October",
+  //   "November",
+  //   "December",
+  // ];
+
+  let userStats;
+  try {
+    userStats = await User.aggregate([
+      {
+        $project: {
+          month: { $month: "$createdAt" },
+        },
+      },
+      {
+        $group: {
+          _id: "$month",
+          total: { $sum: 1 },
+        },
+      },
+    ]);
+  } catch (err) {
+    const error = new HttpError("Something went wrong, database error", 500);
+    return next(error);
+  }
+
+  if (!userStats) {
+    const error = new HttpError("Could not find users", 404);
+    return next(error);
+  }
+
+  res.json(userStats);
 };
 
 const postSignup = async (req, res, next) => {
@@ -124,7 +192,11 @@ const postLogin = async (req, res, next) => {
   let token;
   try {
     token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email, isAdmin: existingUser.isAdmin },
+      {
+        userId: existingUser.id,
+        email: existingUser.email,
+        isAdmin: existingUser.isAdmin,
+      },
       getJWTPrivateKey(),
       {
         expiresIn: "1h",
@@ -145,27 +217,28 @@ const postLogin = async (req, res, next) => {
 const putUpdateUser = async (req, res, next) => {
   if (!req.userData.isAdmin) {
     const error = new HttpError("Admin required", 403);
-      return next(error);
+    return next(error);
   }
 
   res.json({
-    message: "Update allowed"
+    message: "Update allowed",
   });
-}
+};
 
 const deleteUser = async (req, res, next) => {
   if (!req.userData.isAdmin) {
     const error = new HttpError("Admin required", 403);
-      return next(error);
+    return next(error);
   }
 
   res.json({
-    message: "Delete allowed"
+    message: "Delete allowed",
   });
-}
-
+};
 
 exports.getUsers = getUsers;
+exports.getUserById = getUserById;
+exports.getUserStats = getUserStats;
 exports.postSignup = postSignup;
 exports.postLogin = postLogin;
 exports.putUpdateUser = putUpdateUser;
