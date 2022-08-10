@@ -23,7 +23,7 @@ router.post("/login", usersController.postLogin);
 router.use(checkAdmin);
 // routes below this point require admin authentication
 
-router.get("/", usersController.getUsers);
+router.get("/", usersController.getUsers);  // optional query aparam: ?new=true
 
 router.get("/stats", usersController.getUserStats);
 

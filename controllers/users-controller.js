@@ -16,7 +16,7 @@ const getUsers = async (req, res, next) => {
   let users;
   try {
     users = query
-      ? await User.find({}, "-password").sort({ _id: -1 }).limit(1)
+      ? await User.find({}, "-password").sort({ _id: -1 }).limit(5)
       : await User.find({}, "-password");
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
@@ -64,21 +64,6 @@ const getUserStats = async (req, res, next) => {
   // Could aggregate for past year only, leaving as option for now
   // const today = new Date();
   // const lastYear = today.setFullYear(today.setFullYear() - 1);
-
-  // const monthsArrary = [
-  //   "January",
-  //   "February",
-  //   "March",
-  //   "April",
-  //   "May",
-  //   "June",
-  //   "July",
-  //   "August",
-  //   "September",
-  //   "October",
-  //   "November",
-  //   "December",
-  // ];
 
   let userStats;
   try {
