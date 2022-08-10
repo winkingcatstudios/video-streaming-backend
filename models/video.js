@@ -14,26 +14,26 @@ const videoSchema = new Schema(
       type: String,
       required: true,
     },
-    // image: {
-    //   type: String,
-    //   required: true,
-    // },
-    // imageTitle: {
-    //   type: String,
-    //   required: true,
-    // },
-    // imageThumb: {
-    //   type: String,
-    //   required: true,
-    // },
-    // trailer: {
-    //   type: String,
-    //   required: true,
-    // },
-    // video: {
-    //   type: String,
-    //   required: true,
-    // },
+    image: {
+      type: String,
+      required: true,
+    },
+    imageTitle: {
+      type: String,
+      required: true,
+    },
+    imageThumb: {
+      type: String,
+      required: true,
+    },
+    trailerVideo: {
+      type: String,
+      required: true,
+    },
+    fullVideo: {
+      type: String,
+      required: true,
+    },
     year: {
       type: String,
       required: true,

@@ -101,16 +101,20 @@ const postCreateVideo = async (req, res, next) => {
     );
   }
 
-  const { title, description, year, ageLimit, genre, isSeries } = req.body;
+  const { title, description, image, imageTitle, imageThumb, trailerVideo, fullVideo, year, ageLimit, genre, isSeries } = req.body;
 
   const createdVideo = new Video({
     title: title,
     description: description,
+    image: image,
+    imageTitle: imageTitle,
+    imageThumb: imageThumb,
+    trailerVideo: trailerVideo,
+    fullVideo: fullVideo,
     year: year,
     ageLimit: ageLimit,
     genre: genre,
-    isSeries: isSeries,
-    // image: req.file.path,
+    isSeries: isSeries
   });
 
   try {
@@ -138,7 +142,7 @@ const patchUpdateVideo = async (req, res, next) => {
     return next(error);
   }
 
-  const { title, description, year, ageLimit, genre, isSeries } = req.body;
+  const { title, description, image, imageTitle, imageThumb, trailerVideo, fullVideo, year, ageLimit, genre, isSeries } = req.body;
   const videoId = req.params.vid;
 
   let video;
@@ -159,6 +163,11 @@ const patchUpdateVideo = async (req, res, next) => {
 
   video.title = title;
   video.description = description;
+  video.image = image;
+  video.imageTitle = imageTitle;
+  video.imageThumb = imageThumb;
+  video.trailerVideo = trailerVideo;
+  video.fullVideo = fullVideo;
   video.year = year;
   video.ageLimit = ageLimit;
   video.genre = genre;
