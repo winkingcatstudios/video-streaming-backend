@@ -162,7 +162,7 @@ const postSignup = async (req, res, next) => {
       { userId: createdUser.id, email: createdUser.email, isAdmin: false },
       getJWTPrivateKey(),
       {
-        expiresIn: "1h",
+        expiresIn: "1d",
       }
     );
   } catch (err) {
@@ -214,7 +214,7 @@ const postLogin = async (req, res, next) => {
       },
       getJWTPrivateKey(),
       {
-        expiresIn: "1h",
+        expiresIn: "1d",
       }
     );
   } catch (err) {
