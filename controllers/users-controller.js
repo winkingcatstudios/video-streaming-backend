@@ -207,6 +207,7 @@ const postLogin = async (req, res, next) => {
     return next(error);
   }
 
+
   res.json({
     userId: existingUser.id,
     email: existingUser.email,
