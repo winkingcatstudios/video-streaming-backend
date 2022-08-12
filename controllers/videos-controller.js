@@ -17,7 +17,7 @@ const getVideos = async (req, res, next) => {
   let videos;
   try {
     videos = query
-      ? await Video.find({}).sort({ _id: -1 }).limit(1)
+      ? await Video.find({}).sort({ _id: -1 }).limit(10)
       : await Video.find({});
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);

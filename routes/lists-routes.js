@@ -17,7 +17,7 @@ router.get("/", listsController.getLists);
 
 router.get("/find/:lid", listsController.getListById);
 
-router.get("/random", listsController.getRandomList);
+router.get("/random10", listsController.getRandomLists);
 
 router.use(checkAdmin);
 // routes below this point require admin authentication
