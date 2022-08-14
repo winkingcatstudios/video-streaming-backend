@@ -207,7 +207,6 @@ const postLogin = async (req, res, next) => {
     return next(error);
   }
 
-
   res.json({
     userId: existingUser.id,
     email: existingUser.email,
@@ -232,9 +231,29 @@ const deleteUser = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({
-    message: "Delete allowed",
-  });
+  const userId = req.params.uid;
+
+  let user;
+  try {
+    user = await User.findById(userId);
+  } catch (err) {
+    const error = new HttpError("Deleting user failed, please try again", 500);
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError("Cound not find user for this id", 404);
+    return next(error);
+  }
+
+  try {
+    await user.remove();
+  } catch (err) {
+    const error = new HttpError("Deleting user failed, please try again", 500);
+    return next(error);
+  }
+
+  res.status(200).json({ message: "Deleted user" });
 };
 
 exports.getUsers = getUsers;

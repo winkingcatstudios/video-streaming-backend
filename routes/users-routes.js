@@ -27,11 +27,11 @@ router.get("/", usersController.getUsers);  // optional query aparam: ?new=true
 
 router.get("/stats", usersController.getUserStats);
 
-router.get("/find/:id", usersController.getUserById);
+router.get("/find/:uid", usersController.getUserById);
 
-router.put("/:id", usersController.putUpdateUser);
+router.put("/:uid", usersController.putUpdateUser);
 
-router.delete("/:id", usersController.deleteUser);
+router.delete("/:uid", usersController.deleteUser);
 
 
 module.exports = router;
