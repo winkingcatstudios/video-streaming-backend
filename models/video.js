@@ -46,9 +46,9 @@ const videoSchema = new Schema(
       type: String,
       required: true,
     },
-    isSeries: {
-      type: Boolean,
-      default: false,
+    type: {
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }

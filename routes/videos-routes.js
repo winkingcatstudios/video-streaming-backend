@@ -31,7 +31,7 @@ router.post(
     check("year").not().isEmpty(),
     check("ageLimit").not().isEmpty(),
     check("genre").not().isEmpty(),
-    check("isSeries").not().isEmpty(),
+    check("type").not().isEmpty(),
   ],
   videosController.postCreateVideo
 );
@@ -44,7 +44,7 @@ router.patch(
     check("year").not().isEmpty(),
     check("ageLimit").not().isEmpty(),
     check("genre").not().isEmpty(),
-    check("isSeries").not().isEmpty(),
+    check("type").not().isEmpty(),
   ],
   videosController.patchUpdateVideo
 );

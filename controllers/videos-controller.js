@@ -61,17 +61,28 @@ const getRandomVideo = async (req, res, next) => {
 
   let video;
   try {
-    if (type === "series") {
+    if (type === "oneshots") {
       video = await Video.aggregate([
-        { $match: { isSeries: true } },
+        { $match: { type: "oneshots" } },
+        { $sample: { size: 1 } },
+      ]);
+    } else if (type === "series") {
+      video = await Video.aggregate([
+        { $match: { type: "series" } },
+        { $sample: { size: 1 } },
+      ]);
+    } else if (type === "cats") {
+      video = await Video.aggregate([
+        { $match: { type: "cats" } },
         { $sample: { size: 1 } },
       ]);
     } else {
       video = await Video.aggregate([
-        { $match: { isSeries: false } },
         { $sample: { size: 1 } },
       ]);
     }
+
+    
   } catch (err) {
     const error = new HttpError("Something went wrong, database error", 500);
     return next(error);
@@ -101,7 +112,7 @@ const postCreateVideo = async (req, res, next) => {
     );
   }
 
-  const { title, description, image, imageTitle, imageThumb, trailerVideo, fullVideo, year, ageLimit, genre, isSeries } = req.body;
+  const { title, description, image, imageTitle, imageThumb, trailerVideo, fullVideo, year, ageLimit, genre, type } = req.body;
 
   const createdVideo = new Video({
     title: title,
@@ -114,7 +125,7 @@ const postCreateVideo = async (req, res, next) => {
     year: year,
     ageLimit: ageLimit,
     genre: genre,
-    isSeries: isSeries
+    type: type
   });
 
   try {
@@ -142,7 +153,7 @@ const patchUpdateVideo = async (req, res, next) => {
     return next(error);
   }
 
-  const { title, description, image, imageTitle, imageThumb, trailerVideo, fullVideo, year, ageLimit, genre, isSeries } = req.body;
+  const { title, description, image, imageTitle, imageThumb, trailerVideo, fullVideo, year, ageLimit, genre, type } = req.body;
   const videoId = req.params.vid;
 
   let video;
@@ -171,7 +182,7 @@ const patchUpdateVideo = async (req, res, next) => {
   video.year = year;
   video.ageLimit = ageLimit;
   video.genre = genre;
-  video.isSeries = isSeries;
+  video.type = type;
 
   try {
     await video.save();

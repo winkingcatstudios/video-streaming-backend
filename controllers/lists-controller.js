@@ -97,38 +97,6 @@ const getListById = async (req, res, next) => {
   res.json({ list: list.toObject({ getters: true }) });
 };
 
-// const getRandomList = async (req, res, next) => {
-//   const type = req.query.type;
-
-//   let list;
-//   try {
-//     if (type === "series") {
-//       list = await List.aggregate([
-//         { $match: { isSeries: true } },
-//         { $sample: { size: 1 } },
-//       ]);
-//     } else {
-//       list = await List.aggregate([
-//         { $match: { isSeries: false } },
-//         { $sample: { size: 1 } },
-//       ]);
-//     }
-//   } catch (err) {
-//     const error = new HttpError("Something went wrong, database error", 500);
-//     return next(error);
-//   }
-
-//   if (!list) {
-//     const error = new HttpError(
-//       "Could not find a list for the provided id",
-//       404
-//     );
-//     return next(error);
-//   }
-
-//   res.json({ list: list });
-// };
-
 const postCreateList = async (req, res, next) => {
   if (!req.userData.isAdmin) {
     const error = new HttpError("Admin required", 403);
