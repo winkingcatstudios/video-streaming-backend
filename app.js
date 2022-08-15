@@ -60,7 +60,7 @@ mongoose
     `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@winkingcattabletop.hp3zr.mongodb.net/${process.env.DB_NAME}`
   )
   .then(() => {
-    app.listen(5000);
+    app.listen(process.env.PORT || 5000);
     console.log("Starting backend server");
   })
   .catch((err) => {
