@@ -35,11 +35,6 @@ const getLists = async (req, res, next) => {
 };
 
 const getRandomLists = async (req, res, next) => {
-  if (!req.userData.isAdmin) {
-    const error = new HttpError("Admin required", 403);
-    return next(error);
-  }
-
   const typeQuery = req.query.type;
   const genreQuery = req.query.genre;
   let lists;
