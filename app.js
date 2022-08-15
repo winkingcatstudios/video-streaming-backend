@@ -9,7 +9,6 @@ const listsRoutes = require("./routes/lists-routes");
 const usersRoutes = require("./routes/users-routes");
 const videosRoutes = require("./routes/videos-routes");
 const HttpError = require("./models/http-error");
-const getMongoURI = require("./dev-files/dev-files").getMongoURI;
 
 const app = express();
 
@@ -28,7 +27,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.options('/*', (_, res) => {
+app.options("/*", (_, res) => {
   res.sendStatus(200);
 });
 
@@ -57,10 +56,12 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect(getMongoURI())
+  .connect(
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@winkingcattabletop.hp3zr.mongodb.net/${process.env.DB_NAME}`
+  )
   .then(() => {
     app.listen(5000);
-    console.log("Starting backend server")
+    console.log("Starting backend server");
   })
   .catch((err) => {
     console.log(err);

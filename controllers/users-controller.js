@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
-const getJWTPrivateKey = require("../dev-files/dev-files").getJWTPrivateKey;
 
 const getUsers = async (req, res, next) => {
   if (!req.userData.isAdmin) {
@@ -145,7 +144,7 @@ const postSignup = async (req, res, next) => {
   try {
     token = jwt.sign(
       { userId: createdUser.id, email: createdUser.email, isAdmin: false },
-      getJWTPrivateKey(),
+      process.env.JWT_PRIVATE,
       {
         expiresIn: "1d",
       }
@@ -157,7 +156,12 @@ const postSignup = async (req, res, next) => {
 
   res
     .status(201)
-    .json({ userId: createdUser.id, name: createdUser.name, email: createdUser.email, token: token });
+    .json({
+      userId: createdUser.id,
+      name: createdUser.name,
+      email: createdUser.email,
+      token: token,
+    });
 };
 
 const postLogin = async (req, res, next) => {
@@ -197,7 +201,7 @@ const postLogin = async (req, res, next) => {
         email: existingUser.email,
         isAdmin: existingUser.isAdmin,
       },
-      getJWTPrivateKey(),
+      process.env.JWT_PRIVATE,
       {
         expiresIn: "1d",
       }
