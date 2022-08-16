@@ -219,15 +219,51 @@ const postLogin = async (req, res, next) => {
   });
 };
 
-const putUpdateUser = async (req, res, next) => {
+const patchUpdateUser = async (req, res, next) => {
   if (!req.userData.isAdmin) {
     const error = new HttpError("Admin required", 403);
     return next(error);
   }
 
-  res.json({
-    message: "Update allowed",
-  });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new HttpError(
+      "Invalid inputs passed, please check your data",
+      422
+    );
+    return next(error);
+  }
+
+  const { name, email } = req.body;
+  const userId = req.params.uid;
+
+  let user;
+  try {
+    user = await User.findById(userId);
+  } catch (err) {
+    const error = new HttpError("Something went wrong, database error", 500);
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError(
+      "Could not find a user for the provided id",
+      404
+    );
+    return next(error);
+  }
+
+  user.name = name;
+  user.email = email;
+
+  try {
+    await user.save();
+  } catch (err) {
+    const error = new HttpError("Updating user failed, please try again", 500);
+    return next(error);
+  }
+
+  res.status(200).json({ user: user.toObject({ getters: true }) });
 };
 
 const deleteUser = async (req, res, next) => {
@@ -266,5 +302,5 @@ exports.getUserById = getUserById;
 exports.getUserStats = getUserStats;
 exports.postSignup = postSignup;
 exports.postLogin = postLogin;
-exports.putUpdateUser = putUpdateUser;
+exports.patchUpdateUser = patchUpdateUser;
 exports.deleteUser = deleteUser;

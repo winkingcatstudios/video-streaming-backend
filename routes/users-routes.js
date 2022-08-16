@@ -29,7 +29,7 @@ router.get("/stats", usersController.getUserStats);
 
 router.get("/find/:uid", usersController.getUserById);
 
-router.put("/:uid", usersController.putUpdateUser);
+router.patch("/:uid", usersController.patchUpdateUser);
 
 router.delete("/:uid", usersController.deleteUser);
 
