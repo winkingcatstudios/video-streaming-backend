@@ -139,7 +139,7 @@ const patchUpdateList = async (req, res, next) => {
     return next(error);
   }
 
-  const { title, type, genre } = req.body;
+  const { title, type, genre, content } = req.body;
   const listId = req.params.lid;
 
   let list;
@@ -161,6 +161,7 @@ const patchUpdateList = async (req, res, next) => {
   list.title = title;
   list.type = type;
   list.genre = genre;
+  list.content = content;
 
   try {
     await list.save();
